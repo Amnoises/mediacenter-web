@@ -84,7 +84,7 @@ async function resolveComponent(component?: Component | AsyncComponent) {
   }
 
   if (typeof component === 'function') {
-    const resolved = await component()
+    const resolved = await (component as AsyncComponent)()
     if (typeof resolved === 'object' && 'default' in resolved && resolved.default) {
       return resolved.default
     }
@@ -108,7 +108,7 @@ function createRouter(options: RouterOptions): Router {
   const applyRoute = async (path: string, type: NavigationType) => {
     latestNavigationId += 1
     const navigationId = latestNavigationId
-    let targetPath = normalizePath(path)
+    const targetPath = normalizePath(path)
     const record = matchRoute(targetPath)
 
     if (record?.redirect) {

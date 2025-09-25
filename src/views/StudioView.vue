@@ -2,8 +2,23 @@
   <section class="view">
     <h1>Studio</h1>
     <p>Verwalte Produktionen, Projekte und neue Ideen an einem Ort.</p>
+    <FloatingActionButton aria-label="Neues Studio-Projekt hinzufügen" @click="createProject" />
   </section>
 </template>
+
+<script setup lang="ts">
+import FloatingActionButton from '../components/FloatingActionButton.vue';
+
+const createProject = () => {
+  const newProject = {
+    id: Date.now(),
+    title: 'Neues Projekt',
+    createdAt: new Date().toISOString(),
+  };
+
+  console.log('Neues Studio-Projekt erstellt:', newProject);
+};
+</script>
 
 <style scoped>
 .view {

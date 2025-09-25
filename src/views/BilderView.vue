@@ -2,8 +2,23 @@
   <section class="view">
     <h1>Bilder</h1>
     <p>Organisiere und entdecke Galerien deiner Lieblingsmomente.</p>
+    <FloatingActionButton aria-label="Neues Bild hinzufügen" @click="createImage" />
   </section>
 </template>
+
+<script setup lang="ts">
+import FloatingActionButton from '../components/FloatingActionButton.vue';
+
+const createImage = () => {
+  const newImage = {
+    id: Date.now(),
+    title: 'Neues Bild',
+    createdAt: new Date().toISOString(),
+  };
+
+  console.log('Neues Bild-Objekt erstellt:', newImage);
+};
+</script>
 
 <style scoped>
 .view {

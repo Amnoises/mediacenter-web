@@ -2,8 +2,23 @@
   <section class="view">
     <h1>Filme</h1>
     <p>Hier könnten Highlights und Empfehlungen aus der Mediathek stehen.</p>
+    <FloatingActionButton aria-label="Neuen Film hinzufügen" @click="createMovie" />
   </section>
 </template>
+
+<script setup lang="ts">
+import FloatingActionButton from '../components/FloatingActionButton.vue';
+
+const createMovie = () => {
+  const newMovie = {
+    id: Date.now(),
+    title: 'Neuer Film',
+    createdAt: new Date().toISOString(),
+  };
+
+  console.log('Neues Film-Objekt erstellt:', newMovie);
+};
+</script>
 
 <style scoped>
 .view {
