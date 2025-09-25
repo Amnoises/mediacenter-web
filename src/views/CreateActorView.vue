@@ -9,6 +9,37 @@
     </header>
 
     <form class="form" @submit.prevent="handleSubmit">
+      <fieldset class="form-section" aria-describedby="actor-json-help">
+        <legend>Darsteller-Datei importieren</legend>
+
+        <div
+          class="dropzone dropzone--compact"
+          :class="{ 'dropzone--active': isDraggingJson }"
+          @dragenter.prevent="onJsonDragEnter"
+          @dragover.prevent="onJsonDragEnter"
+          @dragleave.prevent="onJsonDragLeave"
+          @drop.prevent="onJsonDrop"
+        >
+          <input
+            id="actor-json-upload"
+            type="file"
+            accept="application/json,.json"
+            class="dropzone__input"
+            @change="onJsonInputChange"
+          />
+
+          <label class="dropzone__content" for="actor-json-upload">
+            <span class="dropzone__icon" aria-hidden="true">📄</span>
+            <span class="dropzone__text">
+              <strong>Darsteller-Datei hochladen</strong>
+              <span id="actor-json-help">Ziehe eine JSON-Datei hierher oder klicke zum Auswählen.</span>
+            </span>
+            <span v-if="jsonFileName" class="dropzone__file">Geladen: {{ jsonFileName }}</span>
+            <span v-else class="dropzone__hint">Füllt die Formularfelder automatisch aus.</span>
+          </label>
+        </div>
+      </fieldset>
+
       <fieldset class="form-section" aria-describedby="images-help">
         <legend>Portraits</legend>
 
@@ -207,10 +238,14 @@ const hasShownSocialLinkHint = ref(false);
 const primaryImage = ref<File | null>(null);
 const secondaryImage = ref<File | null>(null);
 
+const jsonFileName = ref('');
+const isDraggingJson = ref(false);
+
 const isDraggingPrimary = ref(false);
 const isDraggingSecondary = ref(false);
 
 const imageRegex = /^image\//;
+const jsonMimeRegex = /json$/;
 const birthdateRegex = /^\d{4}(-\d{2}(-\d{2})?)?$/;
 
 const resetDragIfNeeded = (event: DragEvent, isDragging: Ref<boolean>) => {
@@ -235,6 +270,150 @@ const extractImage = (files: FileList | null | undefined) => {
   }
 
   return file;
+};
+
+const extractJsonFile = (files: FileList | null | undefined) => {
+  if (!files || files.length === 0) {
+    return null;
+  }
+
+  const file = files[0];
+  if (file.type && !jsonMimeRegex.test(file.type)) {
+    const hasJsonExtension = file.name.toLowerCase().endsWith('.json');
+
+    if (!hasJsonExtension) {
+      return null;
+    }
+  }
+
+  return file;
+};
+
+const toNumberOrNull = (value: unknown) => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  return null;
+};
+
+const applyActorData = (data: Record<string, unknown>) => {
+  const nameValue = typeof data.displayName === 'string' ? data.displayName : data.name;
+  if (typeof nameValue === 'string') {
+    displayName.value = nameValue;
+  }
+
+  if (typeof data.firstName === 'string') {
+    firstName.value = data.firstName;
+  }
+
+  if (typeof data.lastName === 'string') {
+    lastName.value = data.lastName;
+  }
+
+  if (typeof data.country === 'string') {
+    country.value = data.country;
+  }
+
+  const heightValue = toNumberOrNull(data.heightCm ?? data.height);
+  if (heightValue !== null) {
+    heightCm.value = heightValue;
+  }
+
+  const measurementValue = toNumberOrNull(data.measurementCm ?? data.measurement);
+  if (measurementValue !== null) {
+    measurementCm.value = measurementValue;
+  }
+
+  const roleValue = data.role;
+  if (roleValue === 'Top' || roleValue === 'Bottom' || roleValue === 'Versatile') {
+    role.value = roleValue;
+  }
+
+  if (typeof data.birthdate === 'string') {
+    birthdate.value = data.birthdate;
+  }
+
+  if (Array.isArray(data.socialLinks) || Array.isArray(data.socials)) {
+    const links = (Array.isArray(data.socialLinks) ? data.socialLinks : data.socials)
+      .map((entry) => (typeof entry === 'string' ? entry : null))
+      .filter((entry): entry is string => Boolean(entry?.trim()));
+
+    if (links.length > 0) {
+      socialLinks.value = [...links];
+    } else {
+      socialLinks.value = [''];
+    }
+  }
+};
+
+const onJsonDragEnter = () => {
+  isDraggingJson.value = true;
+};
+
+const onJsonDragLeave = (event: DragEvent) => {
+  resetDragIfNeeded(event, isDraggingJson);
+};
+
+const onJsonDrop = (event: DragEvent) => {
+  const file = extractJsonFile(event.dataTransfer?.files);
+  isDraggingJson.value = false;
+
+  if (!file) {
+    showSnackbar('Nur JSON-Dateien können importiert werden.', 'error');
+    return;
+  }
+
+  loadActorFromFile(file);
+};
+
+const onJsonInputChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = extractJsonFile(target.files);
+
+  if (!file) {
+    showSnackbar('Nur JSON-Dateien können importiert werden.', 'error');
+    return;
+  }
+
+  loadActorFromFile(file);
+};
+
+const loadActorFromFile = (file: File) => {
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const content = reader.result;
+
+      if (typeof content !== 'string') {
+        throw new Error('Ungültige Datei');
+      }
+
+      const parsed = JSON.parse(content);
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Ungültige Daten');
+      }
+
+      applyActorData(parsed as Record<string, unknown>);
+      jsonFileName.value = file.name;
+      showSnackbar('Darsteller-Daten wurden übernommen.', 'success');
+    } catch (error) {
+      console.error(error);
+      showSnackbar('Die Datei konnte nicht gelesen werden.', 'error');
+    }
+  };
+
+  reader.onerror = () => {
+    showSnackbar('Die Datei konnte nicht gelesen werden.', 'error');
+  };
+
+  reader.readAsText(file);
 };
 
 const onPrimaryDragEnter = () => {
@@ -403,6 +582,10 @@ const handleSubmit = () => {
   text-align: center;
   background: #fafaff;
   transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.dropzone--compact {
+  padding: 1.75rem 1.5rem;
 }
 
 .dropzone--active {
