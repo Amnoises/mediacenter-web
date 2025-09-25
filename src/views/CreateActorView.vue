@@ -112,12 +112,12 @@
 
         <label class="form-control">
           <span>Vorname (firstName)</span>
-          <input v-model="firstName" type="text" name="firstName" required placeholder="Vorname" />
+          <input v-model="firstname" type="text" name="firstName" required placeholder="Vorname" />
         </label>
 
         <label class="form-control">
           <span>Nachname (lastName)</span>
-          <input v-model="lastName" type="text" name="lastName" required placeholder="Nachname" />
+          <input v-model="lastname" type="text" name="lastName" required placeholder="Nachname" />
         </label>
 
         <label class="form-control">
@@ -224,8 +224,8 @@ const router = useRouter();
 const { showSnackbar } = useSnackbar();
 
 const displayName = ref('');
-const firstName = ref('');
-const lastName = ref('');
+const firstname = ref('');
+const lastname = ref('');
 const country = ref('');
 const heightCm = ref<number | null>(null);
 const measurementCm = ref<number | null>(null);
@@ -295,7 +295,7 @@ const toNumberOrNull = (value: unknown) => {
   }
 
   if (typeof value === 'string' && value.trim()) {
-    const parsed = Number(value);
+    const parsed = Number(value.replace('cm','').trim());
     return Number.isNaN(parsed) ? null : parsed;
   }
 
@@ -308,16 +308,18 @@ const applyActorData = (data: Record<string, unknown>) => {
     displayName.value = nameValue;
   }
 
-  if (typeof data.firstName === 'string') {
-    firstName.value = data.firstName;
+  if (typeof data.firstname === 'string') {
+    firstname.value = data.firstname;
   }
 
-  if (typeof data.lastName === 'string') {
-    lastName.value = data.lastName;
+  if (typeof data.lastname === 'string') {
+    lastname.value = data.lastname;
   }
 
   if (typeof data.country === 'string') {
     country.value = data.country;
+  } else if(typeof data.nationality === 'string') {
+    country.value = data.nationality;
   }
 
   const heightValue = toNumberOrNull(data.heightCm ?? data.height);
@@ -325,7 +327,7 @@ const applyActorData = (data: Record<string, unknown>) => {
     heightCm.value = heightValue;
   }
 
-  const measurementValue = toNumberOrNull(data.measurementCm ?? data.measurement);
+  const measurementValue = toNumberOrNull(data.measurementCm ?? data.measurements);
   if (measurementValue !== null) {
     measurementCm.value = measurementValue;
   }
@@ -335,8 +337,8 @@ const applyActorData = (data: Record<string, unknown>) => {
     role.value = roleValue;
   }
 
-  if (typeof data.birthdate === 'string') {
-    birthdate.value = data.birthdate;
+  if (typeof data.birthday === 'string') {
+    birthdate.value = data.birthday;
   }
 
   if (Array.isArray(data.socialLinks) || Array.isArray(data.socials)) {
@@ -504,8 +506,8 @@ const handleSubmit = () => {
 
   const payload = {
     name: displayName.value,
-    firstName: firstName.value,
-    lastName: lastName.value,
+    firstName: firstname.value,
+    lastName: lastname.value,
     country: country.value,
     heightCm: heightCm.value,
     measurementCm: measurementCm.value,
