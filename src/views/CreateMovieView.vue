@@ -76,9 +76,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import { useSnackbar } from '../composables/useSnackbar'
 import { useRouter } from '../router'
 
 const router = useRouter()
+const { showSnackbar } = useSnackbar()
 
 const title = ref('')
 const releaseDate = ref(new Date().toISOString().split('T')[0])
@@ -121,6 +123,11 @@ const onAssetInputChange = (event: Event) => {
 }
 
 const handleSubmit = () => {
+  if (!videoFile.value) {
+    showSnackbar('Bitte wähle eine Filmdatei aus, bevor du fortfährst.', 'error')
+    return
+  }
+
   const formData = {
     title: title.value,
     releaseDate: releaseDate.value,
@@ -129,6 +136,7 @@ const handleSubmit = () => {
   }
 
   console.log('Film erstellen', formData)
+  showSnackbar('Film wurde erfolgreich erstellt.', 'success')
   router.push('/movies')
 }
 </script>
