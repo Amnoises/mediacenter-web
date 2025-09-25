@@ -187,8 +187,10 @@ import type { Ref } from 'vue';
 import { ref } from 'vue';
 
 import { useRouter } from '../router';
+import { useSnackbar } from '../composables/useSnackbar';
 
 const router = useRouter();
+const { showSnackbar } = useSnackbar();
 
 const displayName = ref('');
 const firstName = ref('');
@@ -200,6 +202,7 @@ const role = ref<'Top' | 'Bottom' | 'Versatile'>('Top');
 const birthdate = ref('');
 const birthdateError = ref('');
 const socialLinks = ref<string[]>(['']);
+const hasShownSocialLinkHint = ref(false);
 
 const primaryImage = ref<File | null>(null);
 const secondaryImage = ref<File | null>(null);
@@ -285,6 +288,12 @@ const addSocialLink = () => {
 const removeSocialLink = (index: number) => {
   if (socialLinks.value.length === 1) {
     socialLinks.value[0] = '';
+
+    if (!hasShownSocialLinkHint.value) {
+      showSnackbar('Hinweis: Mindestens ein Social-Link-Feld bleibt zur Orientierung bestehen.', 'info');
+      hasShownSocialLinkHint.value = true;
+    }
+
     return;
   }
 
@@ -310,6 +319,7 @@ const handleSubmit = () => {
   const isValidBirthdate = validateBirthdate();
 
   if (!isValidBirthdate) {
+    showSnackbar('Bitte gib ein gültiges Geburtsdatum ein.', 'error');
     return;
   }
 
@@ -328,6 +338,7 @@ const handleSubmit = () => {
   };
 
   console.log('Neuen Darsteller erstellen', payload);
+  showSnackbar('Darsteller wurde erfolgreich erstellt.', 'success');
   router.push('/darsteller');
 };
 </script>

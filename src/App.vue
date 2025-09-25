@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from './router'
 
+import AppSnackbar from './components/AppSnackbar.vue'
 import TopNavigation from './components/TopNavigation.vue'
 </script>
 
@@ -11,6 +12,8 @@ import TopNavigation from './components/TopNavigation.vue'
     <main class="content">
       <RouterView />
     </main>
+
+    <AppSnackbar />
   </div>
 </template>
 
