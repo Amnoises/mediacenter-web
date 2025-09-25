@@ -183,15 +183,26 @@
 
         <ul class="social-links" aria-label="Social Media Links">
           <li v-for="(link, index) in socialLinks" :key="index" class="social-links__item">
-            <label class="form-control">
-              <span class="visually-hidden">Social Link {{ index + 1 }}</span>
-              <input
-                v-model="socialLinks[index]"
-                type="url"
-                :name="`social-link-${index}`"
-                placeholder="https://instagram.com/darsteller"
-              />
-            </label>
+            <div class="social-links__fields">
+              <label class="form-control">
+                <span>Plattform</span>
+                <input
+                  v-model="socialLinks[index].platform"
+                  type="text"
+                  :name="`social-platform-${index}`"
+                  placeholder="instagram"
+                />
+              </label>
+              <label class="form-control">
+                <span>Link</span>
+                <input
+                  v-model="socialLinks[index].url"
+                  type="url"
+                  :name="`social-link-${index}`"
+                  placeholder="https://instagram.com/darsteller"
+                />
+              </label>
+            </div>
             <button
               v-if="socialLinks.length > 1"
               type="button"
@@ -223,6 +234,13 @@ import { useSnackbar } from '../composables/useSnackbar';
 const router = useRouter();
 const { showSnackbar } = useSnackbar();
 
+type SocialLink = {
+  platform: string;
+  url: string;
+};
+
+const createEmptySocialLink = (): SocialLink => ({ platform: '', url: '' });
+
 const displayName = ref('');
 const firstName = ref('');
 const lastName = ref('');
@@ -232,7 +250,7 @@ const measurementCm = ref<number | null>(null);
 const role = ref<'Top' | 'Bottom' | 'Versatile'>('Top');
 const birthdate = ref('');
 const birthdateError = ref('');
-const socialLinks = ref<string[]>(['']);
+const socialLinks = ref<SocialLink[]>([createEmptySocialLink()]);
 const hasShownSocialLinkHint = ref(false);
 
 const primaryImage = ref<File | null>(null);
@@ -339,15 +357,26 @@ const applyActorData = (data: Record<string, unknown>) => {
     birthdate.value = data.birthdate;
   }
 
-  if (Array.isArray(data.socialLinks) || Array.isArray(data.socials)) {
-    const links = (Array.isArray(data.socialLinks) ? data.socialLinks : data.socials)
-      .map((entry) => (typeof entry === 'string' ? entry : null))
+  if (data.socialmedia && typeof data.socialmedia === 'object' && !Array.isArray(data.socialmedia)) {
+    const links = Object.entries(data.socialmedia)
+      .map(([platform, url]) => ({ platform: platform.trim(), url: typeof url === 'string' ? url.trim() : '' }))
+      .filter((entry) => Boolean(entry.platform) && Boolean(entry.url));
+
+    if (links.length > 0) {
+      socialLinks.value = links.map((entry) => ({ platform: entry.platform, url: entry.url }));
+    } else {
+      socialLinks.value = [createEmptySocialLink()];
+    }
+  } else if (Array.isArray(data.socialLinks) || Array.isArray(data.socials)) {
+    const source = (Array.isArray(data.socialLinks) ? data.socialLinks : data.socials) as unknown[];
+    const links = source
+      .map((entry: unknown) => (typeof entry === 'string' ? entry : null))
       .filter((entry): entry is string => Boolean(entry?.trim()));
 
     if (links.length > 0) {
-      socialLinks.value = [...links];
+      socialLinks.value = links.map((url: string) => ({ platform: '', url: url.trim() }));
     } else {
-      socialLinks.value = [''];
+      socialLinks.value = [createEmptySocialLink()];
     }
   }
 };
@@ -461,12 +490,12 @@ const onSecondaryInputChange = (event: Event) => {
 };
 
 const addSocialLink = () => {
-  socialLinks.value.push('');
+  socialLinks.value.push(createEmptySocialLink());
 };
 
 const removeSocialLink = (index: number) => {
   if (socialLinks.value.length === 1) {
-    socialLinks.value[0] = '';
+    socialLinks.value[0] = createEmptySocialLink();
 
     if (!hasShownSocialLinkHint.value) {
       showSnackbar('Hinweis: Mindestens ein Social-Link-Feld bleibt zur Orientierung bestehen.', 'info');
@@ -511,7 +540,17 @@ const handleSubmit = () => {
     measurementCm: measurementCm.value,
     role: role.value,
     birthdate: birthdate.value,
-    socialLinks: socialLinks.value.map((link) => link.trim()).filter(Boolean),
+    socialmedia: socialLinks.value.reduce<Record<string, string>>((accumulator, link) => {
+      const platform = link.platform.trim();
+      const url = link.url.trim();
+
+      if (platform && url) {
+        accumulator[platform] = url;
+      }
+
+      return accumulator;
+    }, {}),
+    socialLinks: socialLinks.value.map((link) => link.url.trim()).filter(Boolean),
     primaryImage: primaryImage.value?.name ?? null,
     secondaryImage: secondaryImage.value?.name ?? null,
   };
@@ -684,6 +723,13 @@ const handleSubmit = () => {
   display: flex;
   gap: 1rem;
   align-items: center;
+}
+
+.social-links__fields {
+  display: grid;
+  gap: 1rem;
+  flex: 1;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .link-remove,
