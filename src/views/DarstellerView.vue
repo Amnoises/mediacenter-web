@@ -2,8 +2,23 @@
   <section class="view">
     <h1>Darsteller</h1>
     <p>Behalte Schauspielerinnen und Schauspieler sowie ihre Rollen im Blick.</p>
+    <FloatingActionButton aria-label="Neuen Darsteller hinzufügen" @click="createActor" />
   </section>
 </template>
+
+<script setup lang="ts">
+import FloatingActionButton from '../components/FloatingActionButton.vue';
+
+const createActor = () => {
+  const newActor = {
+    id: Date.now(),
+    name: 'Neue Darstellerin',
+    createdAt: new Date().toISOString(),
+  };
+
+  console.log('Neues Darsteller-Objekt erstellt:', newActor);
+};
+</script>
 
 <style scoped>
 .view {

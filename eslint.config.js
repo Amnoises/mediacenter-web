@@ -2,35 +2,55 @@ import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import vueParser from 'vue-eslint-parser'
 
 export default tseslint.config(
   {
     ignores: ['dist'],
   },
   {
-    files: ['**/*.{js,mjs,cjs,jsx,ts,tsx,vue}'],
-    extends: [
-      js.configs.recommended,
-      ...pluginVue.configs['flat/essential'],
-      ...tseslint.configs.recommended,
-    ],
+    files: ['**/*.vue'],
     languageOptions: {
+      parser: vueParser,
       parserOptions: {
+        parser: tseslint.parser,
         ecmaVersion: 'latest',
         sourceType: 'module',
-        extraFileExtensions: ['.vue'],
       },
       globals: {
         ...globals.browser,
       },
     },
+    extends: [
+      ...pluginVue.configs['flat/essential'],
+      ...tseslint.configs.recommended,
+    ],
   },
   {
-    files: ['**/*.vue'],
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
+      parser: tseslint.parser,
       parserOptions: {
-        parser: tseslint.parser,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.browser,
       },
     },
+    extends: [...tseslint.configs.recommended],
   },
+  {
+    files: ['**/*.{js,mjs,cjs,jsx}'],
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.browser,
+      },
+    },
+    extends: [js.configs.recommended],
+  }
 )
