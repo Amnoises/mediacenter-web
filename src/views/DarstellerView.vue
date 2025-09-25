@@ -8,15 +8,12 @@
 
 <script setup lang="ts">
 import FloatingActionButton from '../components/FloatingActionButton.vue';
+import { useRouter } from '../router';
+
+const router = useRouter();
 
 const createActor = () => {
-  const newActor = {
-    id: Date.now(),
-    name: 'Neue Darstellerin',
-    createdAt: new Date().toISOString(),
-  };
-
-  console.log('Neues Darsteller-Objekt erstellt:', newActor);
+  router.push('/darsteller/new');
 };
 </script>
 

@@ -253,6 +253,11 @@ const router = createRouter({
       name: 'darsteller',
       component: () => import('../views/DarstellerView.vue'),
     },
+    {
+      path: '/darsteller/new',
+      name: 'darsteller-create',
+      component: () => import('../views/CreateActorView.vue'),
+    },
   ],
 })
 
