@@ -234,6 +234,11 @@ const router = createRouter({
       component: () => import('../views/MoviesView.vue'),
     },
     {
+      path: '/movies/new',
+      name: 'movies-create',
+      component: () => import('../views/CreateMovieView.vue'),
+    },
+    {
       path: '/bilder',
       name: 'bilder',
       component: () => import('../views/BilderView.vue'),

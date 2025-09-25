@@ -7,17 +7,14 @@
 </template>
 
 <script setup lang="ts">
-import FloatingActionButton from '../components/FloatingActionButton.vue';
+import FloatingActionButton from '../components/FloatingActionButton.vue'
+import { useRouter } from '../router'
+
+const router = useRouter()
 
 const createMovie = () => {
-  const newMovie = {
-    id: Date.now(),
-    title: 'Neuer Film',
-    createdAt: new Date().toISOString(),
-  };
-
-  console.log('Neues Film-Objekt erstellt:', newMovie);
-};
+  router.push('/movies/new')
+}
 </script>
 
 <style scoped>
