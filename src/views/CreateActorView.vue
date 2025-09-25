@@ -111,12 +111,12 @@
         </label>
 
         <label class="form-control">
-          <span>Vorname (firstName)</span>
+          <span>Vorname</span>
           <input v-model="firstname" type="text" name="firstName" required placeholder="Vorname" />
         </label>
 
         <label class="form-control">
-          <span>Nachname (lastName)</span>
+          <span>Nachname</span>
           <input v-model="lastname" type="text" name="lastName" required placeholder="Nachname" />
         </label>
 
